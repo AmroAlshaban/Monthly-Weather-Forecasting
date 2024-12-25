@@ -248,3 +248,32 @@ plt.show()
 Our fitted model is given by $𝑌_𝑡 = 4.8587 + 0.7403 𝑌_{t-1} − 0.5352 𝑍_{t-1} + 𝑍_t$. From the diagnostics plot, the Q-Q plot indicates that the quantiles are very close to that of a normal distribution and the histogram/KDE plots show that the symmetry and tails of the data are close to a normal distribution, suggesting that our residuals could indeed be normal. Applying a Jarque Bera normality test computes a p-value of 0.1049, which implies no significant evidence that the residuals are not normally distributed. This provides enough evidence to regard our residuals as normally distributed.
 
 The first 4 forecasts were compared with the true values, the results shown below:
+
+```python
+test_set["Date"] = ["January 2024", "February 2024", "March 2024", "April 2024"]
+test_set["Forecast"] = (auto_model_results.forecast(steps=12).values + additive_monthly.seasonal[:12].values)[:4].round(2)
+test_set.index = test_set["Date"]
+test_set.drop(columns=["Date"], inplace=True)
+```
+
+| Date          |   Temperature |   Forecast |
+|:--------------|--------------:|-----------:|
+| January 2024  |            11 |       9.73 |
+| February 2024 |            11 |      10.9  |
+| March 2024    |            14 |      13.84 |
+| April 2024    |            21 |      18.04 |
+
+Finally, we find the $R^2$ score, which is about $96%$:
+
+```python
+from sklearn.metrics import r2_score
+
+get_predicts = auto_model_results.predict(start=0, end=len(monthly_data))
+r2_score(get_predicts[:-1] + additive_monthly.seasonal, monthly_data['Temperature'])
+
+# Output: 0.9600690375798627
+```
+---
+While our model demonstrates exceptional performance, practical weather forecasting demands exceedingly higher levels of accuracy and precision. As such, we must explore different forms of modelling. Improvements may include fitting physical deterministic models to our data and leveraging ARIMA modeling to forecast the residuals. Moreover,
+incorporating exogenous variables such as humidity, wind, pressure, ocean currents, amongst others, is essential for improving our forecasts. Additionally, we can employ a
+Bayesian framework that continuously updates the model based on newly received daily data, thereby automating model improvement.
