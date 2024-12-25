@@ -64,3 +64,19 @@ plt.figure(figsize=(20, 6))
 plt.plot(daily_data['Date'], daily_data['Temperature'], color='green')
 plt.show()
 ```
+![Daily Temperature Plot](https://i.ibb.co/7SmQDqW/results-3-0.png)
+
+We aggregate the data to transform it into monthly averages, then split the data into two datasets, one containing data up to 2023 and the other contains the data from the start of 2024:
+
+```python
+daily_data['Date'] = pd.to_datetime(daily_data['Date'])
+daily_data.set_index('Date', inplace=True)
+
+monthly_data = daily_data.resample('M').mean()
+monthly_data.reset_index(inplace=True)
+monthly_data['Temperature'] = monthly_datanew['Temperature'].round().astype(int)
+
+test_set = monthly_data.iloc[-4:]
+monthly_data = monthly_data.iloc[:-4]
+```
+
