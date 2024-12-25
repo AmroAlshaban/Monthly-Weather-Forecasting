@@ -161,3 +161,30 @@ Skew:                          -0.163   Prob(JB):                     6.37e-06
 Kurtosis:                       1.595   Cond. No.                         317.
 ==============================================================================
 ```
+
+Our data follows a no–trend seasonal additive model of the form: $Y_t = S_t + \epsilon_t$ where $Y_t$ is an observed value, $S_t$ is the seasonal component, and $\epsilon_t$ is the residual (or error), all at time $t$. We perform a seasonal decomposition on our data to separate the seasonal component and
+residuals. Our results are visualized below:
+
+```python
+additive_monthly = seasonal_decompose(monthly_data['Temperature'], model='additive', period=12)
+
+additive_monthly.plot().suptitle('Additive Model')
+plt.tight_layout()
+plt.tight_layout()
+plt.show()
+```
+![Seasonal Decomposition Plot](https://i.ibb.co/RyX0Sbm/results-5.png)
+
+Our residuals appear stationary, which we confirm by applying an Augmented Dickey Fuller test, resulting in a p-value of approximately 0.0003585, far below 0.05 indicating strong stationarity:
+
+```python
+print(adfuller(monthly_data['Temperature'] - additive_monthly.seasonal))
+
+# Output: (-4.353415546369792, 0.000358545753143946, 11, 264, {'1%': -3.455365238788105, '5%': -2.8725510317187024, '10%': -2.5726375763314966}, 877.9825682189721)
+# The p-value is given by 0.000358545753143946, less than the 5% significance level, indicating the data is stationary.
+```
+
+After achieving stationarity of residuals, our objective is to fit an appropriate Autoregressive Moving Average (ARMA) model to the residuals. We will then incorporate the seasonal component into our residual forecasts to predict the monthly average temperature for the year 2024. Our ARMA model will be chosen by minimizing the
+corrected Akaike Information Criterion (AICC). 
+
+Results are shown below:
