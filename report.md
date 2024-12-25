@@ -89,4 +89,24 @@ plt.show()
 ```
 ![Monthly Temperature Plot](https://i.ibb.co/GQVGTJP/download.png)
 
+Summary statistics for the monthly average temperatures are computed using ```.groupby()``` method as follows:
 
+```python
+monthly_data_copy = monthly_data.copy()
+monthly_data_copy["Month"] = monthly_data_copy["Date"].dt.month
+summary_statistics = monthly_data_copy[["Temperature", "Month"]].groupby("Month").describe().reset_index(drop=True).round(2).T
+summary_statistics.rename(columns=dict(zip([i for i in range(12)], ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"])), inplace=True)
+summary_statistics.index = [item[1] for item in summary_statistics.index]
+summary_statistics = summary_statistics[summary_statistics.index != 'count']
+summary_statistics["All"] = monthly_data_copy["Temperature"].describe().round(2)[monthly_data_copy["Temperature"].describe().index != 'count']
+```
+
+|      |   January |   February |   March |   April |   May |   June |   July |   August |   September |   October |   November |   December |   All |
+|:-----|----------:|-----------:|--------:|--------:|------:|-------:|-------:|---------:|------------:|----------:|-----------:|-----------:|------:|
+| mean |      8.83 |      10.17 |   13.43 |   17.61 | 22.13 |  25.04 |  27.17 |    27.13 |       25    |     21.61 |      15.57 |      10.74 | 18.7  |
+| std  |      1.3  |       1.3  |    2.04 |    1.62 |  1.25 |   1.11 |   1.03 |     1.14 |        1.41 |      1.41 |       1.56 |       1.42 |  6.71 |
+| min  |      6    |       8    |    9    |   15    | 20    |  23    |  25    |    25    |       23    |     19    |      12    |       8    |  6    |
+| 25%  |      8    |       9.5  |   12.5  |   16.5  | 21    |  24    |  27    |    26    |       24    |     20    |      15    |       9.5  | 12    |
+| 50%  |      9    |      10    |   13    |   17    | 22    |  25    |  27    |    27    |       25    |     22    |      16    |      11    | 20    |
+| 75%  |      9.5  |      11    |   15    |   19    | 23    |  26    |  27.5  |    28    |       26    |     22.5  |      16    |      12    | 25    |
+| max  |     12    |      13    |   17    |   21    | 25    |  27    |  30    |    30    |       29    |     24    |      19    |      13    | 30    |
