@@ -7,6 +7,7 @@ import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 from pandas.plotting import autocorrelation_plot
 import matplotlib.pyplot as plt
 from datetime import datetime
+import statsmodels.api as sm
 from statsmodels.tsa.stattools import acf, adfuller, kpss, pacf
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
@@ -89,7 +90,7 @@ plt.show()
 ```
 ![Monthly Temperature Plot](https://i.ibb.co/GQVGTJP/download.png)
 
-Summary statistics for the monthly average temperatures are computed using ```.groupby()``` method as follows:
+Summary statistics for the monthly average temperatures are computed using the ```.groupby()``` method as follows:
 
 ```python
 monthly_data_copy = monthly_data.copy()
@@ -110,3 +111,53 @@ summary_statistics["All"] = monthly_data_copy["Temperature"].describe().round(2)
 | 50%  |      9    |      10    |   13    |   17    | 22    |  25    |  27    |    27    |       25    |     22    |      16    |      11    | 20    |
 | 75%  |      9.5  |      11    |   15    |   19    | 23    |  26    |  27.5  |    28    |       26    |     22.5  |      16    |      12    | 25    |
 | max  |     12    |      13    |   17    |   21    | 25    |  27    |  30    |    30    |       29    |     24    |      19    |      13    | 30    |
+
+The following is a plot of the mean of the yearly average temperatures for every month:
+
+```python
+plt.figure(figsize=(8, 5))
+plt.plot(range(1, 13), [summary_statistics[i].loc['mean'][0] for i in range(1, 13)], color='magenta')
+plt.title("Mean Monthly Average Temperature per month from 2001 to 2023")
+plt.xlabel("Month")
+plt.ylabel("Monthly Average Temperature")
+plt.show()
+```
+![Mean Monthly Temperature (2001–2023)](https://i.ibb.co/9pjcS1z/download.png)
+
+We observe constant periodicity of 12 months, with no apparent trend and the amplitudes do not significantly vary in time, so we adopt an additive time series model. Indeed, we fit a linear regression model into our data, then perform a t-test to see if the slope is significantly different from zero. Our p-value is equal to 0.236 which is significantly greater than 0.05, indicating no statistical evidence that our slope varies from zero. The linear model summary is shown below (performed using ```statsmodels``` library):
+
+```python
+X = monthly_data_copy.index
+y = monthly_data_copy['Temperature'].values
+
+X = sm.add_constant(X)
+
+trend_ = sm.OLS(y, X).fit()
+
+print(trend_.summary())
+```
+
+```
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                      y   R-squared:                       0.005
+Model:                            OLS   Adj. R-squared:                  0.001
+Method:                 Least Squares   F-statistic:                     1.411
+Date:                Wed, 25 Dec 2024   Prob (F-statistic):              0.236
+Time:                        10:03:23   Log-Likelihood:                -915.74
+No. Observations:                 276   AIC:                             1835.
+Df Residuals:                     274   BIC:                             1843.
+Df Model:                           1                                         
+Covariance Type:            nonrobust                                         
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+const         17.8757      0.805     22.211      0.000      16.291      19.460
+x1             0.0060      0.005      1.188      0.236      -0.004       0.016
+==============================================================================
+Omnibus:                     1188.792   Durbin-Watson:                   0.328
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):               23.928
+Skew:                          -0.163   Prob(JB):                     6.37e-06
+Kurtosis:                       1.595   Cond. No.                         317.
+==============================================================================
+```
