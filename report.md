@@ -185,6 +185,66 @@ print(adfuller(monthly_data['Temperature'] - additive_monthly.seasonal))
 ```
 
 After achieving stationarity of residuals, our objective is to fit an appropriate Autoregressive Moving Average (ARMA) model to the residuals. We will then incorporate the seasonal component into our residual forecasts to predict the monthly average temperature for the year 2024. Our ARMA model will be chosen by minimizing the
-corrected Akaike Information Criterion (AICC). 
+corrected Akaike Information Criterion (AICC). This will be achieved using ```pmdarima``` library's ```autoarima()``` function which automatically finds the best ARMA model that minimizes the AICC.
 
 Results are shown below:
+
+```python
+from pmdarima import auto_arima
+
+auto_model = auto_arima(monthly_resids, test='adf', seasonal=False)
+print(auto_model.summary())
+```
+
+```
+                               SARIMAX Results                                
+==============================================================================
+Dep. Variable:                      y   No. Observations:                  276
+Model:               SARIMAX(1, 0, 1)   Log Likelihood                -467.095
+Date:                Sun, 22 Dec 2024   AIC                            942.189
+Time:                        16:32:11   BIC                            956.671
+Sample:                             0   HQIC                           948.000
+                                - 276                                         
+Covariance Type:                  opg                                         
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+intercept      4.8587      2.507      1.938      0.053      -0.055       9.773
+ar.L1          0.7403      0.134      5.524      0.000       0.478       1.003
+ma.L1         -0.5352      0.165     -3.245      0.001      -0.859      -0.212
+sigma2         1.7311      0.138     12.507      0.000       1.460       2.002
+===================================================================================
+Ljung-Box (L1) (Q):                   0.17   Jarque-Bera (JB):                 4.59
+Prob(Q):                              0.68   Prob(JB):                         0.10
+Heteroskedasticity (H):               1.13   Skew:                             0.26
+Prob(H) (two-sided):                  0.57   Kurtosis:                         3.36
+===================================================================================
+```
+
+Diagnostics are plotted below (residuals, histograms, KDE, normal Q-Q, and correlogram plots):
+
+```python
+auto_model_results.plot_diagnostics()
+plt.show()
+```
+![Diagnostics Plot](https://i.ibb.co/cgZ17s7/results-6.png)
+
+We now use our model to find forecasts for all months in 2024. By calculating residual forecasts and then adding the seasonal components, we calculate our predictions which are plotted below:
+
+```python
+auto_model_results = ARIMA(monthly_resids, order=(1, 0, 1)).fit()
+
+plt.plot(monthly_data['Date'], monthly_data['Temperature'], color='red', label='Actual')
+plt.plot([datetime(year=2023, month=12, day=15)] + [datetime(year=2024, month=i, day=15) for i in range(1, 13)], [monthly_data['Temperature'].iloc[-1]] + (auto_model_results.forecast(steps=12).values + additive_monthly.seasonal[:12].values).tolist(), color='orange', label='Forecast')
+plt.title("Actual Values and Forecasts")
+plt.xlabel("Date")
+plt.ylabel("Temperature")
+plt.legend()
+plt.show()
+```
+
+![Actual vs Forecast Plot](https://i.ibb.co/020jSQ6/results-7.png)
+
+Our fitted model is given by $𝑌_𝑡 = 4.8587 + 0.7403 𝑌_{t-1} − 0.5352 𝑍_{t-1} + 𝑍_t$. From the diagnostics plot, the Q-Q plot indicates that the quantiles are very close to that of a normal distribution and the histogram/KDE plots show that the symmetry and tails of the data are close to a normal distribution, suggesting that our residuals could indeed be normal. Applying a Jarque Bera normality test computes a p-value of 0.1049, which implies no significant evidence that the residuals are not normally distributed. This provides enough evidence to regard our residuals as normally distributed.
+
+The first 4 forecasts were compared with the true values, the results shown below:
