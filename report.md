@@ -66,7 +66,7 @@ plt.show()
 ```
 ![Daily Temperature Plot](https://i.ibb.co/7SmQDqW/results-3-0.png)
 
-We aggregate the data to transform it into monthly averages, then split the data into two datasets, one containing data up to 2023 and the other contains the data from the start of 2024:
+We aggregate the data to transform it into monthly averages, then split the data into two datasets, one containing data up to 2023 and the other contains the data from the start of 2024. A plot of the monthly data is shown:
 
 ```python
 daily_data['Date'] = pd.to_datetime(daily_data['Date'])
@@ -79,4 +79,14 @@ monthly_data['Temperature'] = monthly_datanew['Temperature'].round().astype(int)
 test_set = monthly_data.iloc[-4:]
 monthly_data = monthly_data.iloc[:-4]
 ```
+```python
+plt.figure(figsize=(10, 6))
+plt.plot(monthly_data['Date'], monthly_data['Temperature'], color='red')
+plt.title('Monthly Average Temperatures (2001 - 2023)')
+plt.xlabel('Date')
+plt.ylabel('Temperature')
+plt.show()
+```
+![Monthly Temperature Plot](https://i.ibb.co/GQVGTJP/download.png)
+
 
