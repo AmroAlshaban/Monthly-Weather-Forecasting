@@ -1,4 +1,4 @@
-# Monthly-Weather-Forecasting-in-Jordan
+# Monthly-Weather-Forecasting
 
 An analysis of monthly weather data from January 2001 to December 2023 was conducted to understand trends, seasonality, and residual patterns. The dataset was extracted, transformed and decomposed into its seasonal and residual components, with trend adjustments made as necessary. Stationarity was rigorously tested using methods like the Augmented Dickey-Fuller (ADF) test.
 
